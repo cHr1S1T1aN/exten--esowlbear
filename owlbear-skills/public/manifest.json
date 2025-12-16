@@ -1,0 +1,14 @@
+{
+  "manifest_version": 1,
+  "name": "Skills Panel",
+  "version": "0.1.0",
+  "description": "Painel de skills",
+
+  "action": {
+    "title": "Skills",
+    "icon": "/icon.svg",
+    "popover": "/index.html",
+    "width": 320,
+    "height": 600
+  }
+}
