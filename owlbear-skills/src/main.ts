@@ -14,7 +14,6 @@ import "./style.css";
     msg.remove();
   }, 2500);
 }*/
-
 const METADATA_KEY = "skills-extension";
 
 type SkillType = "ativa" | "passiva" | "ultimate";
@@ -290,7 +289,7 @@ setTimeout(() => {
     });
 }
 
-
+//testando
 
   // 6️⃣ Sessão do Player
   async function renderPlayerSession(container: HTMLElement) {
@@ -337,5 +336,4 @@ OBR.room.onMetadataChange(() => {
     if (content) renderPlayerSession(content);
   }
 });
-
 });
