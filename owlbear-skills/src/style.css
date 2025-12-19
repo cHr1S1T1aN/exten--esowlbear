@@ -330,6 +330,7 @@ section {
 }
 .use-skill-btn {
   margin-top: 6px;
+  margin-bottom: 6px;
   align-self: flex-start;
   background: linear-gradient(135deg, #ff9800, #ff5722);
   border: none;
