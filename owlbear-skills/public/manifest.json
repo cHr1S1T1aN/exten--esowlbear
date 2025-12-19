@@ -3,12 +3,10 @@
   "name": "Skills Panel",
   "version": "0.1.0",
   "description": "Painel de skills",
-  "icon": "https://exten-esowlbear-w5eg-imr9o0s7x-chrismorats50918-3263s-projects.vercel.app/wand_stars_62dp_E3E3E3_FILL0_wght400_GRAD0_opsz48.png",
 
   "action": {
     "title": "Skills",
-    "icon": "https://exten-esowlbear-w5eg-imr9o0s7x-chrismorats50918-3263s-projects.vercel.app/wand_stars_62dp_E3E3E3_FILL0_wght400_GRAD0_opsz48.png",
-    "popover": "https://exten-esowlbear-w5eg-imr9o0s7x-chrismorats50918-3263s-projects.vercel.app",
+    "popover": "https://exten-esowlbear-w5eg-imr9o0s7x-chrismorats50918-3263s-projects.vercel.app/",
     "width": 360,
     "height": 600
   }
