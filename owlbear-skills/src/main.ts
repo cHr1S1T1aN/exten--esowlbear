@@ -755,44 +755,60 @@ function createSkillCard(
   } = {}
 ) {
   const div = document.createElement("div");
-  div.className = "skill-card";
+
+  // classe base + tipo (ativa/passiva/ultimate)
+  div.className = `skill-card ${skill.type}`;
 
   div.innerHTML = `
-    <strong>${skill.name}</strong>
-    <small>${skill.type}</small>
+    <div class="skill-header">
+      <span class="skill-name">${skill.name}</span>
+      <span class="skill-badge ${skill.type}">
+        ${skill.type}
+      </span>
+    </div>
+
     <p>${skill.description}</p>
 
     <div class="skill-info">
-      ${skill.manaCost ? `<span>Mana: ${skill.manaCost}</span>` : ""}
-      ${skill.cooldown ? `<span>Cooldown: ${skill.cooldown}</span>` : ""}
+      ${
+        skill.manaCost !== undefined
+          ? `<div class="skill-stat">🔥 Mana: ${skill.manaCost}</div>`
+          : ""
+      }
+      ${
+        skill.cooldown !== undefined
+          ? `<div class="skill-stat">⏱ Cooldown: ${skill.cooldown}</div>`
+          : ""
+      }
     </div>
   `;
 
   const actions = document.createElement("div");
-actions.className = "skill-actions";
+  actions.className = "skill-actions";
 
-if (options.showUseButton) {
-  const useBtn = document.createElement("button");
-  useBtn.textContent = "⚡ Usar";
-  useBtn.className = "btn skill-use";
+  /* ⚡ USAR */
+  if (options.showUseButton) {
+    const useBtn = document.createElement("button");
+    useBtn.textContent = "⚡ Usar";
+    useBtn.className = "use-skill-btn";
 
-  useBtn.onclick = () => {
-    options.onUse?.();
-    showToast(`⚡ ${skill.name} foi usada`);
-  };
+    useBtn.onclick = () => {
+      options.onUse?.();
+      showToast(`⚡ ${skill.name} foi usada`);
+    };
 
-  actions.appendChild(useBtn);
-}
+    actions.appendChild(useBtn);
+  }
 
+  /* ✏️ EDITAR */
+  if (options.showEditButton) {
+    const editBtn = document.createElement("button");
+    editBtn.textContent = "✏️ Editar";
+    editBtn.className = "edit-skill-btn";
+    editBtn.onclick = options.onEdit!;
 
-if (options.showEditButton) {
-  const editBtn = document.createElement("button");
-  editBtn.textContent = "✏️ Editar";
-  editBtn.className = "btn skill-edit";
-  editBtn.onclick = options.onEdit!;
-  actions.appendChild(editBtn);
-}
-
+    actions.appendChild(editBtn);
+  }
 
   if (actions.children.length > 0) {
     div.appendChild(actions);
@@ -800,6 +816,7 @@ if (options.showEditButton) {
 
   return div;
 }
+
 async function openPlayerEditSkill(
   skill: Skill,
   playerId: string
