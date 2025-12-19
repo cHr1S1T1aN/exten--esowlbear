@@ -681,7 +681,7 @@ body,
 /* ✏️ BOTÃO EDITAR (PLAYER) */
 .edit-skill-btn {
   height: 2px;
-  padding: 0 12px;
+  padding: 0 14px;
 
   display: inline-flex;
   align-items: center;
