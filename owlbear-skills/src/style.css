@@ -622,7 +622,7 @@ body,
 .skill-actions {
   display: flex;
   gap: 10px;
-  margin-top: 120px;
+  margin-top: 12px;
   align-items: center;
 }
 
@@ -677,4 +677,16 @@ body,
   opacity: 0.4;
   cursor: not-allowed;
   box-shadow: none;
+}
+/* ✏️ BOTÃO EDITAR (PLAYER) */
+.edit-skill-btn {
+  height: 32px;
+  padding: 0 14px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  border-radius: 8px;
+  font-size: 13px;
 }
