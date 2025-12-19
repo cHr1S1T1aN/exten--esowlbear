@@ -27,11 +27,25 @@ type Skill = {
   cooldown?: number;
 };
 
+type SkillHistoryEntry = {
+  id: string;
+  skillId: string;
+  skillName: string;
+  action: "use" | "edit";
+  skillType: SkillType; // 👈 ADICIONAR ISSO
+  usedAt: number;
+};
+
+
 type SkillsMetadata = {
   players: {
     [playerId: string]: Skill[];
   };
+  history?: {
+    [playerId: string]: SkillHistoryEntry[];
+  };
 };
+
 /*async function getSkillsMetadata(): Promise<SkillsMetadata> {
   const metadata = await OBR.room.getMetadata();
 
@@ -59,6 +73,36 @@ async function saveSkillForPlayer(playerId: string, skill: Skill) {
   }
 
   skillsData.players[playerId].push(skill);
+
+  await OBR.room.setMetadata({
+    ...metadata,
+    [METADATA_KEY]: skillsData,
+  });
+}
+async function useSkill(playerId: string, skill: Skill) {
+  const metadata = await OBR.room.getMetadata();
+
+  const skillsData = (metadata[METADATA_KEY] ??
+    { players: {}, history: {} }) as SkillsMetadata;
+
+  if (!skillsData.history) {
+    skillsData.history = {};
+  }
+
+  if (!skillsData.history[playerId]) {
+    skillsData.history[playerId] = [];
+  }
+
+  skillsData.history[playerId].push({
+  id: crypto.randomUUID(),
+  skillId: skill.id,
+  action: "use",
+  skillName: skill.name,
+  skillType: skill.type, // 👈 ESSENCIAL
+  usedAt: Date.now(),
+});
+
+
 
   await OBR.room.setMetadata({
     ...metadata,
@@ -101,6 +145,7 @@ console.log("ROLE DETECTADA:", role);
     // Player entra direto
     openSkillsSession(isGM);
   }
+let gmHistoryFilter: SkillType = "ativa";
 
   // 4️⃣ Router de sessão
   function openSkillsSession(isGM: boolean) {
@@ -117,7 +162,228 @@ console.log("ROLE DETECTADA:", role);
     }
   }
 
-  // 5️⃣ Sessão do GM
+async function openEditSkills(playerId: string, playerName: string) {
+  const content = document.getElementById("gm-content")!;
+  const metadata = await OBR.room.getMetadata();
+  const skills =
+    (metadata[METADATA_KEY] as SkillsMetadata)?.players[playerId] ?? [];
+
+  content.innerHTML = `
+    <h3>✏️ Editar Skillssss — ${playerName}</h3>
+    <div class="edit-skills-list"></div>
+    <button class="back-btn" id="back-to-players">⬅ Voltar</button>
+  `;
+
+  const list = content.querySelector(".edit-skills-list") as HTMLElement;
+
+  if (skills.length === 0) {
+    list.innerHTML = `<p>(nenhuma skill)</p>`;
+    return;
+  }
+
+  skills.forEach(skill => {
+    const row = document.createElement("div");
+    row.className = "edit-skill-row";
+
+    row.innerHTML = `
+      <div class="skill-info">
+        <strong>${skill.name}</strong>
+        <small class="skill-type">${skill.type}</small>
+      </div>
+
+      <div class="skill-actions">
+        <button class="icon-btn edit">✏️</button>
+      </div>
+    `;
+
+    row
+      .querySelector(".edit")!
+      .addEventListener("click", () => {
+        openEditSkillForm(playerId, skill);
+      });
+
+    list.appendChild(row);
+  });
+
+  document
+    .getElementById("back-to-players")
+    ?.addEventListener("click", () => {
+      renderGMContent("players");
+    });
+}
+
+async function openEditSkillForm(
+  playerId: string,
+  skill: Skill
+) {
+  const content = document.getElementById("gm-content")!;
+
+  content.innerHTML = `
+    <h3>✏️ Editar Skill — ${skill.name}</h3>
+
+    <form id="skill-form" class="skill-form">
+      <label>
+        Nome da Skill
+        <input type="text" id="skill-name" value="${skill.name}" required />
+      </label>
+
+      <label>
+        Tipo
+        <select id="skill-type">
+          <option value="ativa" ${skill.type === "ativa" ? "selected" : ""}>Ativa</option>
+          <option value="passiva" ${skill.type === "passiva" ? "selected" : ""}>Passiva</option>
+          <option value="ultimate" ${skill.type === "ultimate" ? "selected" : ""}>Ultimate</option>
+        </select>
+      </label>
+
+      <label>
+        Descrição
+        <textarea id="skill-description">${skill.description}</textarea>
+      </label>
+
+      <label>
+        Custo de Mana
+        <input type="number" id="skill-mana" value="${skill.manaCost ?? ""}" />
+      </label>
+
+      <label>
+        Cooldown
+        <input type="number" id="skill-cooldown" value="${skill.cooldown ?? ""}" />
+      </label>
+
+      <div class="form-actions">
+        <button type="submit">💾 Salvar Alterações</button>
+        <button type="button" id="cancel-edit">Cancelar</button>
+      </div>
+    </form>
+  `;
+
+  const form = document.getElementById("skill-form") as HTMLFormElement;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    await updateSkillForPlayer(playerId, {
+      ...skill,
+      name: (document.getElementById("skill-name") as HTMLInputElement).value,
+      type: (document.getElementById("skill-type") as HTMLSelectElement)
+        .value as SkillType,
+      description: (document.getElementById("skill-description") as HTMLTextAreaElement).value,
+      manaCost: Number((document.getElementById("skill-mana") as HTMLInputElement).value) || undefined,
+      cooldown: Number((document.getElementById("skill-cooldown") as HTMLInputElement).value) || undefined,
+    });
+
+    renderGMContent("players");
+  });
+
+  document
+    .getElementById("cancel-edit")!
+    .addEventListener("click", () => {
+      renderGMContent("players");
+    });
+}
+async function updateSkillForPlayer(playerId: string, updatedSkill: Skill) {
+  const metadata = await OBR.room.getMetadata();
+  const skillsData = metadata[METADATA_KEY] as SkillsMetadata;
+
+  const skills = skillsData.players[playerId];
+
+  const index = skills.findIndex(s => s.id === updatedSkill.id);
+  if (index === -1) return;
+
+  skills[index] = updatedSkill;
+
+  await OBR.room.setMetadata({
+    ...metadata,
+    [METADATA_KEY]: skillsData,
+  });
+}
+
+
+
+async function openDeleteSkills(playerId: string, playerName: string) {
+  const content = document.getElementById("gm-content")!;
+  const metadata = await OBR.room.getMetadata();
+  const skillsData = metadata[METADATA_KEY] as SkillsMetadata | undefined;
+
+  const skills = skillsData?.players[playerId] ?? [];
+
+  content.innerHTML = `
+    <h3>🗑️ Apagar Skills — ${playerName}</h3>
+
+    ${
+      skills.length === 0
+        ? "<p>(esse player não possui skills)</p>"
+        : `<ul class="delete-skills-list"></ul>`
+    }
+
+    <button id="back-to-players">⬅ Voltar</button>
+  `;
+
+  const backBtn = document.getElementById("back-to-players");
+  backBtn?.addEventListener("click", () => {
+    renderGMContent("players");
+  });
+
+  if (skills.length === 0) return;
+
+  const list = content.querySelector(
+    ".delete-skills-list"
+  ) as HTMLUListElement;
+
+  skills.forEach(skill => {
+    const li = document.createElement("li");
+    li.className = "delete-skill-item";
+
+    li.innerHTML = `
+      <span>
+        <strong>${skill.name}</strong>
+        <small>(${skill.type})</small>
+      </span>
+
+      <button class="delete-btn">🗑️</button>
+    `;
+
+    const deleteBtn = li.querySelector(
+      ".delete-btn"
+    ) as HTMLButtonElement;
+
+    deleteBtn.addEventListener("click", async () => {
+      const confirmDelete = confirm(
+        `Tem certeza que deseja apagar a skill "${skill.name}"?`
+      );
+
+      if (!confirmDelete) return;
+
+      await deleteSkillForPlayer(playerId, skill.id);
+
+      // feedback visual simples
+      li.remove();
+
+      if (list.children.length === 0) {
+        list.innerHTML = "<p>(todas as skills foram apagadas)</p>";
+      }
+    });
+
+    list.appendChild(li);
+  });
+}
+
+async function deleteSkillForPlayer(playerId: string, skillId: string) {
+  const metadata = await OBR.room.getMetadata();
+  const skillsData = metadata[METADATA_KEY] as SkillsMetadata | undefined;
+
+  if (!skillsData?.players[playerId]) return;
+
+  skillsData.players[playerId] =
+    skillsData.players[playerId].filter(skill => skill.id !== skillId);
+
+  await OBR.room.setMetadata({
+    ...metadata,
+    [METADATA_KEY]: skillsData,
+  });
+}
+
   async function renderGMSession(container: HTMLElement) {
   container.innerHTML = `
     <div class="gm-layout">
@@ -178,26 +444,160 @@ async function renderGMContent(
       ? `${player.name} (GM)`
       : player.name;
 
-  const button = document.createElement("button");
-  button.textContent = "➕ Adicionar Skill";
-  button.disabled = player.role === "GM"; // GM não adiciona skill a si mesmo
+  const actions = document.createElement("div");
+actions.className = "player-actions";
 
-  button.addEventListener("click", () => {
-    onAddSkillClick(player.id, player.name);
-  });
+/* ➕ ADD */
 
-  li.appendChild(name);
-  li.appendChild(button);
+const addBtn = document.createElement("button");
+addBtn.textContent = "➕";
+addBtn.title = "Adicionar Skill";
+addBtn.className = "icon-btn add";
+addBtn.disabled = player.role === "GM";
+addBtn.addEventListener("click", () => {
+  onAddSkillClick(player.id, player.name);
+});
+
+   /* ✏️ EDIT */
+const editBtn = document.createElement("button");
+editBtn.textContent = "✏️";
+editBtn.title = "Editar Skills";
+editBtn.className = "icon-btn edit";
+editBtn.disabled = player.role === "GM";
+editBtn.addEventListener("click", () => {
+  openEditSkills(player.id, player.name);
+});
+
+    /* 🗑️ DELETE */
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "🗑️";
+      deleteBtn.title = "Apagar Skills";
+      deleteBtn.className = "icon-btn delete";
+      deleteBtn.disabled = player.role === "GM";
+      deleteBtn.addEventListener("click", () => {
+        openDeleteSkills(player.id, player.name);
+      });
+
+    actions.appendChild(addBtn);
+    actions.appendChild(editBtn);
+    actions.appendChild(deleteBtn);
+
+    li.appendChild(name);
+    li.appendChild(actions);
+
   list.appendChild(li);
 });
 }
 
   if (view === "history") {
-    content.innerHTML = `
-      <h3>📜 Histórico de Skills</h3>
-      <div>(em breve)</div>
-    `;
+  content.innerHTML = `
+    <h3>📜 Histórico de Skills</h3>
+
+    <div class="history-filters">
+      <button class="filter-btn active" data-type="ativa">⚔️ Ativas</button>
+      <button class="filter-btn" data-type="passiva">🛡️ Passivas</button>
+      <button class="filter-btn" data-type="ultimate">🔥 Ultimates</button>
+    </div>
+
+    <div id="history-list"></div>
+  `;
+
+  const buttons =
+  content.querySelectorAll<HTMLButtonElement>(".filter-btn");
+
+buttons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    buttons.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    gmHistoryFilter = btn.dataset.type as SkillType;
+    renderGMHistory();
+  });
+});
+
+  renderGMHistory(); // primeira renderização
+}
+async function renderGMHistory() {
+  const container = document.getElementById("history-list")!;
+  container.innerHTML = "";
+
+  const metadata = await OBR.room.getMetadata();
+  const skillsData = metadata[METADATA_KEY] as SkillsMetadata | undefined;
+
+  if (!skillsData) {
+    container.innerHTML = `<p>(sem dados)</p>`;
+    return;
   }
+
+  const players = await OBR.party.getPlayers();
+
+  players.forEach(player => {
+    const history = skillsData.history?.[player.id] ?? [];
+    const skills = skillsData.players[player.id] ?? [];
+
+    let entries: HTMLElement[] = [];
+
+    /* 🛡️ PASSIVAS — SEMPRE MOSTRAR */
+    if (gmHistoryFilter === "passiva") {
+      const passivas = skills.filter(s => s.type === "passiva");
+
+      passivas.forEach(skill => {
+        const div = document.createElement("div");
+        div.className = "history-entry passive";
+
+        div.innerHTML = `
+        <strong>${skill.name}</strong>
+        <small class="passive-desc">
+          🛡️ ${skill.description || "Passiva sempre ativa"}
+        </small>
+      `;
+
+
+
+        entries.push(div);
+      });
+    }
+
+    /* ⚔️ ATIVAS / 🔥 ULTIMATES — USADAS */
+    else {
+      history
+  .filter(entry => entry.skillType === gmHistoryFilter)
+  .slice()
+  .reverse()
+  .forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "history-entry";
+
+    const label =
+      entry.action === "edit"
+        ? "✏️ skill editada em"
+        : entry.skillType === "ultimate"
+        ? "🔥 skill usada em"
+        : "⚡ skill usada em";
+
+    div.innerHTML = `
+      <strong>${entry.skillName}</strong>
+      <small>
+        ${label} ${new Date(entry.usedAt).toLocaleString()}
+      </small>
+    `;
+
+    entries.push(div);
+  });
+
+
+    }
+
+    if (entries.length === 0) return;
+
+    const section = document.createElement("section");
+    section.className = "gm-history-section";
+    section.innerHTML = `<h4>👤 ${player.name}</h4>`;
+
+    entries.forEach(e => section.appendChild(e));
+    container.appendChild(section);
+  });
+}
 
   if (view === "events") {
     content.innerHTML = `
@@ -289,51 +689,295 @@ setTimeout(() => {
     });
 }
 
-//testando
 
   // 6️⃣ Sessão do Player
-  async function renderPlayerSession(container: HTMLElement) {
+ async function renderPlayerSession(container: HTMLElement) {
+  container.innerHTML = `
+    <div class="player-layout">
+      <div class="player-tabs">
+        <button class="player-tab active" data-view="skills">📘 Skills</button>
+        <button class="player-tab" data-view="history">📜 Histórico</button>
+      </div>
+
+      <div class="player-content" id="player-content"></div>
+    </div>
+  `;
+
+  bindPlayerTabs();
+  renderPlayerContent("skills");
+}
+function bindPlayerTabs() {
+  const tabs = document.querySelectorAll(".player-tab");
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      const view = tab.getAttribute("data-view") as
+        | "skills"
+        | "history";
+
+      renderPlayerContent(view);
+    });
+  });
+}
+function createSkillCard(
+  skill: Skill,
+  options: {
+    showUseButton?: boolean;
+    onUse?: () => void;
+    showEditButton?: boolean;
+    onEdit?: () => void;
+  } = {}
+) {
+  const div = document.createElement("div");
+  div.className = "skill-card";
+
+  div.innerHTML = `
+    <strong>${skill.name}</strong>
+    <small>${skill.type}</small>
+    <p>${skill.description}</p>
+
+    <div class="skill-info">
+      ${skill.manaCost ? `<span>Mana: ${skill.manaCost}</span>` : ""}
+      ${skill.cooldown ? `<span>Cooldown: ${skill.cooldown}</span>` : ""}
+    </div>
+  `;
+
+  const actions = document.createElement("div");
+actions.className = "skill-actions";
+
+if (options.showUseButton) {
+  const useBtn = document.createElement("button");
+  useBtn.textContent = "⚡ Usar";
+  useBtn.className = "btn skill-use";
+  useBtn.onclick = options.onUse!;
+  actions.appendChild(useBtn);
+}
+
+if (options.showEditButton) {
+  const editBtn = document.createElement("button");
+  editBtn.textContent = "✏️ Editar";
+  editBtn.className = "btn skill-edit";
+  editBtn.onclick = options.onEdit!;
+  actions.appendChild(editBtn);
+}
+
+
+  if (actions.children.length > 0) {
+    div.appendChild(actions);
+  }
+
+  return div;
+}
+async function openPlayerEditSkill(
+  skill: Skill,
+  playerId: string
+) {
+  const content = document.getElementById("player-content")!;
+
+content.innerHTML = `
+  <h4>✏️ Editar Skill</h4>
+
+  <label>
+    Nome
+    <input id="edit-name" value="${skill.name}" />
+  </label>
+
+  <label>
+    Descrição
+    <textarea id="edit-desc">${skill.description}</textarea>
+  </label>
+
+  <label>
+    Mana
+    <input type="number" id="edit-mana" value="${skill.manaCost ?? ""}" />
+  </label>
+
+  <label>
+    Cooldown
+    <input type="number" id="edit-cd" value="${skill.cooldown ?? ""}" />
+  </label>
+
+  <div class="edit-actions">
+    <button id="save-edit" class="btn primary">💾 Salvar</button>
+    <button id="cancel-edit" class="btn ghost">Cancelar</button>
+  </div>
+`;
+
+
+  document.getElementById("save-edit")!.onclick = async () => {
+    await updatePlayerSkill(playerId, {
+      ...skill,
+      name: (document.getElementById("edit-name") as HTMLInputElement).value,
+      description: (document.getElementById("edit-desc") as HTMLTextAreaElement).value,
+      manaCost: Number(
+        (document.getElementById("edit-mana") as HTMLInputElement).value
+      ) || undefined,
+      cooldown: Number(
+        (document.getElementById("edit-cd") as HTMLInputElement).value
+      ) || undefined,
+    });
+
+    renderPlayerContent("skills");
+  };
+
+  document.getElementById("cancel-edit")!.onclick = () => {
+    renderPlayerContent("skills");
+  };
+}
+
+async function updatePlayerSkill(
+  playerId: string,
+  updatedSkill: Skill
+) {
+  const metadata = await OBR.room.getMetadata();
+  const skillsData = metadata[METADATA_KEY] as SkillsMetadata;
+
+  const skills = skillsData.players[playerId];
+  const index = skills.findIndex(s => s.id === updatedSkill.id);
+
+  if (index === -1) return;
+
+  skills[index] = updatedSkill;
+
+  // 🔔 registra no histórico
+  if (!skillsData.history) skillsData.history = {};
+  if (!skillsData.history[playerId])
+    skillsData.history[playerId] = [];
+
+  skillsData.history[playerId].push({
+    id: crypto.randomUUID(),
+    skillId: updatedSkill.id,
+    skillName: updatedSkill.name,
+    action: "edit",
+    skillType: updatedSkill.type,
+    usedAt: Date.now(),
+  });
+
+  await OBR.room.setMetadata({
+    ...metadata,
+    [METADATA_KEY]: skillsData,
+  });
+}
+
+async function renderPlayerContent(view: "skills" | "history") {
+  const content = document.getElementById("player-content")!;
   const myId = await OBR.player.getId();
   const metadata = await OBR.room.getMetadata();
   const skillsData = metadata[METADATA_KEY] as SkillsMetadata | undefined;
 
-  const mySkills = skillsData?.players[myId] ?? [];
+  /* 📘 SKILLS */
+  if (view === "skills") {
+    content.innerHTML = "";
+    const mySkills = skillsData?.players[myId] ?? [];
+    const passivas = mySkills.filter(s => s.type === "passiva");
+    const ativas = mySkills.filter(s => s.type === "ativa");
+    const ultimates = mySkills.filter(s => s.type === "ultimate");
+    /* 🟢 PASSIVAS */
+    if (passivas.length > 0) {
+      const section = document.createElement("section");
+      section.innerHTML = `<h4>🟢 Passivas</h4>`;
 
-  container.innerHTML = `
-    <section>
-      <h3>👤 Suas Skills</h3>
-      <div class="player-skills"></div>
-    </section>
-  `;
+      passivas.forEach(skill => {
+      section.appendChild(
+        createSkillCard(skill, {
+          showEditButton: true,
+          onEdit: () => openPlayerEditSkill(skill, myId),
+        })
+      );
+    });
 
-  const skillsContainer = container.querySelector(
-    ".player-skills"
-  ) as HTMLElement;
 
-  if (mySkills.length === 0) {
-    skillsContainer.innerHTML = "<p>(nenhuma skill ainda)</p>";
+      content.appendChild(section);
+    }
+
+    /* 🔵 ATIVAS */
+    if (ativas.length > 0) {
+      const section = document.createElement("section");
+      section.innerHTML = `<h4>🔵 Ativas</h4>`;
+
+      ativas.forEach(skill => {
+      section.appendChild(
+        createSkillCard(skill, {
+          showUseButton: true,
+          onUse: async () => {
+            await useSkill(myId, skill);
+          },
+          showEditButton: true,
+          onEdit: () => openPlayerEditSkill(skill, myId),
+        })
+      );
+    });
+
+
+      content.appendChild(section);
+    }
+
+    /* 🔴 ULTIMATES */
+    if (ultimates.length > 0) {
+      const section = document.createElement("section");
+      section.innerHTML = `<h4>🔴 Ultimates</h4>`;
+
+      ultimates.forEach(skill => {
+        section.appendChild(
+          createSkillCard(skill, {
+            showUseButton: true,
+            onUse: async () => {
+              await useSkill(myId, skill);
+            },
+            showEditButton: true,
+            onEdit: () => openPlayerEditSkill(skill, myId),
+          })
+        );
+      });
+
+
+      content.appendChild(section);
+    }
+  }
+/* 📜 HISTÓRICO */
+if (view === "history") {
+  const history = skillsData?.history?.[myId] ?? [];
+
+  if (history.length === 0) {
+    content.innerHTML = "<p>(nenhuma ação registrada ainda)</p>";
     return;
   }
 
-  mySkills.forEach(skill => {
-    const div = document.createElement("div");
-    div.className = "skill-card";
+  content.innerHTML = "";
 
-    div.innerHTML = `
-      <strong>${skill.name}</strong>
-      <small>${skill.type}</small>
-      <p>${skill.description}</p>
-      ${skill.manaCost ? `<span>Mana: ${skill.manaCost}</span>` : ""}
-      ${skill.cooldown ? `<span>Cooldown: ${skill.cooldown}</span>` : ""}
-    `;
+  history
+    .slice()
+    .reverse()
+    .forEach(entry => {
+      const div = document.createElement("div");
+      div.className = "history-entry";
 
-    skillsContainer.appendChild(div);
-  });
+      const icon =
+        entry.action === "edit"
+          ? "✏️"
+          : entry.skillType === "ultimate"
+          ? "🔥"
+          : entry.skillType === "ativa"
+          ? "⚡"
+          : "🛡️";
+
+      const text =
+        entry.action === "edit"
+          ? "skill editada em"
+          : "skill usada em";
+
+      div.innerHTML = `
+        <strong>${icon} ${entry.skillName}</strong>
+        <small>
+          ${text} ${new Date(entry.usedAt).toLocaleString()}
+        </small>
+      `;
+
+      content.appendChild(div);
+    });
 }
-OBR.room.onMetadataChange(() => {
-  if (!isGM) {
-    const content = document.getElementById("session-content");
-    if (content) renderPlayerSession(content);
-  }
-});
+}
 });

@@ -1,9 +1,14 @@
 import { defineConfig } from "vite";
-import basicSsl from "@vitejs/plugin-basic-ssl";
 
 export default defineConfig({
-  plugins: [basicSsl()],
   server: {
-    cors: true
-  }
+    host: true,
+    port: 5173,
+    cors: true,
+    allowedHosts: [".ngrok-free.dev"],
+  },
+
+  preview: {
+    port: 4173,
+  },
 });

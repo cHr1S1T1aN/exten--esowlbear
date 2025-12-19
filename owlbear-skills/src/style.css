@@ -1,9 +1,14 @@
 body {
   margin: 0;
-  font-family: system-ui, sans-serif;
-  background: #0f0f12;
-  color: #eaeaea;
+  min-height: 100vh;
+
+  background-image: url("https://i.pinimg.com/originals/23/7a/c5/237ac54cdea81df47af9a65f895ee6db.gif");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
+
 
 .skills-root {
   padding: 12px;
@@ -207,4 +212,346 @@ section {
     opacity: 1;
     transform: translateY(0);
   }
+}
+.player-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  color: #eaeaea;
+}
+.player-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.player-tab {
+  background: #1f1f1f;
+  border: 1px solid #333;
+  color: #ccc;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.player-tab.active {
+  background: #2d6cdf;
+  color: white;
+  border-color: #2d6cdf;
+}
+.player-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.player-content section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.player-content h4 {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.skill-card {
+  background: #151515;
+  border: 1px solid #2a2a2a;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.skill-card strong {
+  font-size: 14px;
+}
+
+.skill-card small {
+  font-size: 11px;
+  color: #aaa;
+  text-transform: capitalize;
+}
+
+.skill-card p {
+  font-size: 12px;
+  color: #ccc;
+}
+.skill-info {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #bbb;
+}
+.use-skill-btn {
+  margin-top: 6px;
+  align-self: flex-start;
+  background: linear-gradient(135deg, #ff9800, #ff5722);
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.use-skill-btn:hover {
+  filter: brightness(1.1);
+}
+.history-entry {
+  background: #151515;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.history-entry small {
+  color: #aaa;
+}
+ .gm-history-section {
+  margin-bottom: 16px;
+}
+
+.gm-history-section h4 {
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #ffd166;
+}
+.delete-skills-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+}
+
+.delete-skill-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 6px;
+  background: #1e1e1e;
+}
+
+.delete-skill-item small {
+  opacity: 0.7;
+  margin-left: 6px;
+}
+
+.delete-btn {
+  background: #ff4d4d;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: #ff1f1f;
+}/* ===== PLAYER ACTIONS (GM LIST) ===== */
+
+.player-actions {
+  display: flex;
+  gap: 6px;
+  background: #0b1220;
+  padding: 6px;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+/* botão icônico base */
+/* botão icônico */
+.player-actions .icon-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 16px;
+  cursor: pointer;
+
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+/* hover */
+.player-actions .icon-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.icon-btn:active {
+  transform: translateY(0);
+}
+
+.icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* cores */
+.icon-btn.add {
+  color: #22c55e;
+}
+
+.icon-btn.edit {
+  color: #38bdf8;
+}
+
+.icon-btn.delete {
+  color: #f87171;
+}
+
+/* ===== EDIT SKILLS LIST ===== */
+
+.edit-skills-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.edit-skill-row {
+  background: #0f172a;
+  border-radius: 12px;
+  padding: 12px 14px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+.skill-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.skill-type {
+  font-size: 12px;
+  opacity: 0.6;
+  text-transform: capitalize;
+}
+
+/* ===== BOTÃO VOLTAR ===== */
+
+.back-btn {
+  margin-top: 18px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.back-btn:hover {
+  color: white;
+}
+.history-entry.passive {
+  border-left: 3px solid #22c55e;
+  background: #0f1f14;
+}
+
+.passive-desc {
+  color: #86efac;
+  font-size: 12px;
+}
+.history-filters {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+
+.filter-btn {
+  background: #0f172a; /* fundo dark */
+  color: #cbd5f5;
+  border: 1px solid #1e293b;
+  border-radius: 10px;
+  padding: 6px 12px;
+
+  font-size: 13px;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+
+.filter-btn:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+}
+
+/* 🔥 ATIVO */
+.filter-btn.active {
+  background: linear-gradient(135deg, #7c5cff, #9f8cff);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(124, 92, 255, 0.4);
+}
+
+.filter-btn:active {
+  transform: translateY(0);
+}
+/* 🌙 Tema escuro — texto padrão branco */
+body,
+#app,
+.player-content,
+.gm-content {
+  color: #e5e7eb; /* cinza quase branco (melhor que branco puro) */
+}
+/* === EDIT SKILL ACTIONS === */
+.edit-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* botão base */
+.btn {
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+/* botão principal */
+.btn.primary {
+  background: linear-gradient(135deg, #7c6cff, #9a8cff);
+  color: white;
+  box-shadow: 0 4px 12px rgba(124, 108, 255, 0.4);
+}
+
+.btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(124, 108, 255, 0.6);
+}
+
+/* botão secundário */
+.btn.ghost {
+  background: transparent;
+  color: #ccc;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
