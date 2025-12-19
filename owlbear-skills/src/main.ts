@@ -560,8 +560,14 @@ async function renderGMHistory() {
 
     /* ⚔️ ATIVAS / 🔥 ULTIMATES — USADAS */
     else {
-      history
-  .filter(entry => entry.skillType === gmHistoryFilter)
+      const FIVE_MINUTES = 5 * 60 * 1000;
+const now = Date.now();
+
+history
+  .filter(entry =>
+    entry.skillType === gmHistoryFilter &&
+    now - entry.usedAt <= FIVE_MINUTES
+  )
   .slice()
   .reverse()
   .forEach(entry => {
@@ -584,7 +590,6 @@ async function renderGMHistory() {
 
     entries.push(div);
   });
-
 
     }
 
