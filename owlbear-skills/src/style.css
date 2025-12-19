@@ -680,7 +680,7 @@ body,
 }
 /* ✏️ BOTÃO EDITAR (PLAYER) */
 .edit-skill-btn {
-  height: 7px;
+  height: 12px;
   padding: 0 14px;
 
   display: inline-flex;
