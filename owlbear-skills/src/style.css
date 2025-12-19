@@ -618,3 +618,62 @@ body,
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+/* ===== SKILL ACTIONS ===== */
+.skill-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* botão base */
+.skill-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 8px 14px;
+  border-radius: 999px; /* pill */
+  font-size: 13px;
+  font-weight: 600;
+
+  border: none;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* ⚡ USAR */
+.skill-btn.primary {
+  background: linear-gradient(135deg, #ff9800, #ff5722);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(255, 152, 0, 0.35);
+}
+
+.skill-btn.primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(255, 152, 0, 0.5);
+}
+
+.skill-btn.primary:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3);
+}
+
+/* ✏️ EDITAR */
+.skill-btn.ghost {
+  background: rgba(255, 255, 255, 0.06);
+  color: #cbd5f5;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.skill-btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+/* desabilitado (futuro cooldown) */
+.skill-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
