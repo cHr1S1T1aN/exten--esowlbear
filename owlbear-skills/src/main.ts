@@ -727,6 +727,24 @@ function bindPlayerTabs() {
     });
   });
 }
+function showToast(message: string, duration = 3000) {
+  const toast = document.createElement("div");
+  toast.className = "toast-message";
+  toast.textContent = message;
+
+  document.body.appendChild(toast);
+
+  // força reflow pra animação funcionar
+  requestAnimationFrame(() => {
+    toast.classList.add("show");
+  });
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
 function createSkillCard(
   skill: Skill,
   options: {
@@ -757,9 +775,15 @@ if (options.showUseButton) {
   const useBtn = document.createElement("button");
   useBtn.textContent = "⚡ Usar";
   useBtn.className = "btn skill-use";
-  useBtn.onclick = options.onUse!;
+
+  useBtn.onclick = () => {
+    options.onUse?.();
+    showToast(`⚡ ${skill.name} foi usada`);
+  };
+
   actions.appendChild(useBtn);
 }
+
 
 if (options.showEditButton) {
   const editBtn = document.createElement("button");
