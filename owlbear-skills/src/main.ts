@@ -952,37 +952,48 @@ if (view === "history") {
   }
 
   content.innerHTML = "";
+      const FIVE_MINUTES = 5 * 60 * 1000;
+      const now = Date.now();
 
-  history
-    .slice()
-    .reverse()
-    .forEach(entry => {
-      const div = document.createElement("div");
-      div.className = "history-entry";
+      history
+        .slice()
+        .reverse()
+        .filter(entry => {
+          // Ativas e ultimates somem após 5 minutos
+          if (entry.skillType === "ativa" || entry.skillType === "ultimate") {
+            return now - entry.usedAt <= FIVE_MINUTES;
+          }
 
-      const icon =
-        entry.action === "edit"
-          ? "✏️"
-          : entry.skillType === "ultimate"
-          ? "🔥"
-          : entry.skillType === "ativa"
-          ? "⚡"
-          : "🛡️";
+          // Passivas e edits ficam
+          return true;
+        })
+        .forEach(entry => {
+          const div = document.createElement("div");
+          div.className = "history-entry";
 
-      const text =
-        entry.action === "edit"
-          ? "skill editada em"
-          : "skill usada em";
+          const icon =
+            entry.action === "edit"
+              ? "✏️"
+              : entry.skillType === "ultimate"
+              ? "🔥"
+              : entry.skillType === "ativa"
+              ? "⚡"
+              : "🛡️";
 
-      div.innerHTML = `
-        <strong>${icon} ${entry.skillName}</strong>
-        <small>
-          ${text} ${new Date(entry.usedAt).toLocaleString()}
-        </small>
-      `;
+          const text =
+            entry.action === "edit"
+              ? "skill editada em"
+              : "skill usada em";
 
-      content.appendChild(div);
-    });
-}
-}
+          div.innerHTML = `
+            <strong>${icon} ${entry.skillName}</strong>
+            <small>
+              ${text} ${new Date(entry.usedAt).toLocaleString()}
+            </small>
+          `;
+
+          content.appendChild(div);
+        });
+    }
+  }
 });
