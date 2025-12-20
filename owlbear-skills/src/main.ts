@@ -560,13 +560,14 @@ async function renderGMHistory() {
 
     /* ⚔️ ATIVAS / 🔥 ULTIMATES — USADAS */
     else {
-      const FIVE_MINUTES = 5 * 60 * 1000;
+      const FIFTEEN_MINUTES = 15 * 60 * 1000;
+
 const now = Date.now();
 
 history
   .filter(entry =>
     entry.skillType === gmHistoryFilter &&
-    now - entry.usedAt <= FIVE_MINUTES
+    now - entry.usedAt <= FIFTEEN_MINUTES
   )
   .slice()
   .reverse()
@@ -993,7 +994,7 @@ if (view === "history") {
   }
 
   content.innerHTML = "";
-      const FIVE_MINUTES = 5 * 60 * 1000;
+      const FIFTEEN_MINUTES = 15 * 60 * 1000;
       const now = Date.now();
 
       history
@@ -1002,7 +1003,7 @@ if (view === "history") {
         .filter(entry => {
           // Ativas e ultimates somem após 5 minutos
           if (entry.skillType === "ativa" || entry.skillType === "ultimate") {
-            return now - entry.usedAt <= FIVE_MINUTES;
+            return now - entry.usedAt <= FIFTEEN_MINUTES;
           }
 
           // Passivas e edits ficam
