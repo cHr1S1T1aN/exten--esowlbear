@@ -2,14 +2,8 @@
   "manifest_version": 1,
   "name": "Skills Panel",
   "version": "0.1.0",
-  "description": "Painel de skills",
+  "description": "Painel de skills por player controlado pelo mestre",
   "icon": "/wand_stars_64dp_E3E3E3_FILL0_wght400_GRAD0_opsz48(3).png",
-
-  "action": {
-    "title": "Skills",
-    "icon": "/wand_stars_64dp_E3E3E3_FILL0_wght400_GRAD0_opsz48(3).png",
-    "popover": "/index.html",
-    "width": 360,
-    "height": 600
-  }
+  "background_url": "/index.html",
+  "permissions": []
 }
